@@ -1,4 +1,5 @@
-﻿using Jurassic;
+﻿using System.Reflection;
+using Jurassic;
 using Jurassic.Library;
 using System;
 using System.Collections.Generic;
@@ -12,10 +13,10 @@ namespace CoffeeSharp
   {
     private ScriptEngine scriptEngine;
 
-    public CoffeeScriptEngine()
+    public CoffeeScriptEngine(string coffeeCompiler = null)
     {
       this.scriptEngine = new ScriptEngine();
-      scriptEngine.Execute(Resources.CoffeeScriptSource);
+      scriptEngine.Execute(coffeeCompiler ?? GetCoffeeCompiler());
       scriptEngine.Execute("coffeeScriptEval = CoffeeScript.eval;");
       scriptEngine.Execute("coffeeScriptNodes = CoffeeScript.nodes;");
       scriptEngine.Execute("coffeeScriptTokens = CoffeeScript.tokens;");
@@ -67,6 +68,15 @@ namespace CoffeeSharp
     private class JsObject : ObjectInstance
     {
       public JsObject(ScriptEngine se) : base(se) { }
+    }
+
+    private string GetCoffeeCompiler()
+    {
+      var assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+      var pathToCoffee = Path.Combine(assemblyFolder, "coffee-script.js");
+      if (!File.Exists(pathToCoffee))
+        return Resources.CoffeeScriptSource;
+      return File.ReadAllText(pathToCoffee);
     }
   }
 }
